@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Countdown Timer</title>
+    <title>Timer Widget</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,41 +13,40 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background: black; /* Set background to black */
-            color: white; /* Default text color to white */
+            background: #191919;  
+            color: white;  
         }
         .widget-container {
-            width: 300px;
-            height: 135px;
+            width: 260px;
+            height: 110px; 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            border: 3px solid #0077b6; /* Add border */
-            border-radius: 20px; /* Rounded corners */
-            background-color: #1c1c1c; /* Dark background for container */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+            border: 3px solid #4B0082;  
+            border-radius: 20px;  
+            background-color: #1c1c1c;  
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);  
             padding: 10px;
             text-align: center;
         }
         h1 {
-            color: #00b4d8;
+            color: #F5F5F5;
             font-size: 1rem;
             margin: 0;
         }
         #timer {
-            font-size: 2rem;
-            color: #90e0ef;
+            font-size: 1.8rem;
+            color: #F5F5F5;
         }
         .button-container {
             display: flex;
-            justify-content: center;
-            gap: 8px;
+            justify-content: space-between;
             align-items: center;
-            width: auto;
+            width: 100%;
         }
         button {
-            background-color: #0096c7;
+            background-color: #4B0082;  
             color: white;
             border: none;
             padding: 5px 10px;
@@ -56,11 +55,11 @@
             cursor: pointer;
         }
         button:hover {
-            background-color: #0077b6;
+            background-color: #3A0066;  
         }
         .small-button {
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             font-size: 1.5rem;
             text-align: center;
             padding: 0;
@@ -70,7 +69,7 @@
 <body>
     <div class="widget-container">
         <h1>⭐ Time Left on Power Hour</h1>
-        <div id="timer">00:00</div>
+        <div id="timer">60:00</div>
         <div class="button-container">
             <button class="small-button" onclick="pauseTimer()">-</button>
             <button onclick="resetTimer()">Reset</button>
@@ -81,7 +80,7 @@
     <script>
         // Timer duration in seconds (e.g., 1 hour = 3600 seconds)
         const duration = 3600; // 1 hour
-        let remainingTime = localStorage.getItem('remainingTime') || duration;
+        let remainingTime = localStorage.getItem('powerHourTime') || duration;
 
         const timerDisplay = document.getElementById('timer');
         let countdownInterval;
@@ -105,7 +104,7 @@
                 if (remainingTime > 0) {
                     remainingTime--;
                     updateTimerDisplay();
-                    localStorage.setItem('remainingTime', remainingTime); // Save the remaining time
+                    localStorage.setItem('powerHourTime', remainingTime); // Save the remaining time
                 } else {
                     clearInterval(countdownInterval); // Stop the timer when it reaches 0
                 }
@@ -126,7 +125,7 @@
         function resetTimer() {
             remainingTime = duration;
             updateTimerDisplay();
-            localStorage.setItem('remainingTime', remainingTime);
+            localStorage.setItem('powerHourTime', remainingTime);
             startCountdown();
         }
 
