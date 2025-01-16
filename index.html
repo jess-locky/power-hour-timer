@@ -39,6 +39,11 @@
             font-size: 2rem;
             color: #90e0ef;
         }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
         button {
             background-color: #0096c7;
             color: white;
@@ -47,6 +52,8 @@
             border-radius: 5px;
             font-size: 1rem;
             cursor: pointer;
+            flex: 1; /* Ensure equal button width */
+            margin: 0 5px; /* Add spacing between buttons */
         }
         button:hover {
             background-color: #0077b6;
@@ -57,7 +64,11 @@
     <div class="widget-container">
         <h1>⭐ Time Left on Power Hour</h1>
         <div id="timer">00:00</div>
-        <button onclick="resetTimer()">+ Reset</button>
+        <div class="button-container">
+            <button onclick="pauseTimer()">- Pause</button>
+            <button onclick="resetTimer()">+ Reset</button>
+            <button onclick="resumeTimer()">+ Start</button>
+        </div>
     </div>
 
     <script>
@@ -92,6 +103,16 @@
                     clearInterval(countdownInterval); // Stop the timer when it reaches 0
                 }
             }, 1000);
+        }
+
+        // Function to pause the timer
+        function pauseTimer() {
+            clearInterval(countdownInterval); // Stops the countdown
+        }
+
+        // Function to resume the timer
+        function resumeTimer() {
+            startCountdown(); // Resumes the countdown
         }
 
         // Function to reset the timer
