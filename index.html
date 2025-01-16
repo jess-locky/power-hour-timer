@@ -42,21 +42,28 @@
         .button-container {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             width: 100%;
         }
         button {
             background-color: #0096c7;
             color: white;
             border: none;
-            padding: 5px 15px;
+            padding: 5px 10px;
             border-radius: 5px;
             font-size: 1rem;
             cursor: pointer;
-            flex: 1; /* Ensure equal button width */
-            margin: 0 5px; /* Add spacing between buttons */
+            margin: 0 5px;
         }
         button:hover {
             background-color: #0077b6;
+        }
+        .small-button {
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 0;
         }
     </style>
 </head>
@@ -65,9 +72,9 @@
         <h1>⭐ Time Left on Power Hour</h1>
         <div id="timer">00:00</div>
         <div class="button-container">
-            <button onclick="pauseTimer()">- Pause</button>
-            <button onclick="resetTimer()">+ Reset</button>
-            <button onclick="resumeTimer()">+ Start</button>
+            <button class="small-button" onclick="pauseTimer()">-</button>
+            <button onclick="resetTimer()">Reset</button>
+            <button class="small-button" onclick="resumeTimer()">+</button>
         </div>
     </div>
 
