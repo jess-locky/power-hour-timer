@@ -44,34 +44,34 @@
             font-weight: bold;
             color: #f472b6;
             margin: 10px 0;
-            font-family: 'Segoe UI', monospace;
+            font-family: 'Courier New', monospace;
             text-shadow: 0 0 20px rgba(244, 114, 182, 0.5);
         }
 
         /* Status indicator */
         .status {
             font-size: 0.8rem;
-            color: #a78bfa;
+            color: #888;
             margin-bottom: 20px;
             height: 18px;
             padding: 4px 12px;
             border-radius: 20px;
-            background: rgba(167, 139, 250, 0.1);
+            background: rgba(255,255,255,0.05);
         }
 
         .status.running {
             color: #c4b5fd;
-            background: rgba(196, 181, 253, 0.15);
+            background: rgba(167, 139, 250, 0.15);
         }
 
         .status.paused {
             color: #f9a8d4;
-            background: rgba(249, 168, 212, 0.15);
+            background: rgba(244, 114, 182, 0.15);
         }
 
         .status.finished {
-            color: #f472b6;
-            background: rgba(244, 114, 182, 0.15);
+            color: #e879f9;
+            background: rgba(232, 121, 249, 0.15);
         }
 
         /* Button container */
@@ -103,27 +103,26 @@
             transform: translateY(0);
         }
 
-        /* Pause/Resume button */
+        /* Pause/Resume button - purple theme */
         .btn-pause {
-            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
             padding: 12px 20px;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
         }
 
         .btn-pause:hover {
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-        }
-
-        .btn-pause.paused {
             background: linear-gradient(135deg, #a78bfa, #7c3aed);
         }
 
-        .btn-pause.paused:hover {
-            background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+        /* Resume state - lighter purple instead of green */
+        .btn-pause.paused {
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
         }
 
-        /* Reset button */
+        .btn-pause.paused:hover {
+            background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+        }
+
+        /* Reset button - cute circular pink */
         .btn-reset {
             width: 50px;
             height: 50px;
@@ -138,23 +137,21 @@
         }
 
         .btn-reset:hover {
-            background: linear-gradient(135deg, #f9a8d4, #ec4899);
+            background: linear-gradient(135deg, #f9a8d4, #f472b6);
             box-shadow: 0 6px 20px rgba(219, 39, 119, 0.5);
         }
 
-        /* Snooze button */
+        /* Snooze button - purple theme */
         .btn-snooze {
-            background: linear-gradient(135deg, #6d28d9, #4c1d95);
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
             padding: 12px 16px;
-            box-shadow: 0 4px 15px rgba(109, 40, 217, 0.3);
         }
 
         .btn-snooze:hover {
-            background: linear-gradient(135deg, #7c3aed, #5b21b6);
-            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.4);
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
         }
 
-        /* Why not add some razzle dazzle. */
+        /* Little decorative stars */
         .stars {
             font-size: 1.2rem;
             margin-bottom: 8px;
@@ -166,9 +163,9 @@
         <div class="stars">✨⭐✨</div>
         <div class="header">POWER HOUR</div>
         <div class="timer-display" id="timer">60:00</div>
-        <div class="status" id="status">▶ Running</div>
+        <div class="status" id="status">⏸ Ready</div>
         <div class="button-container">
-            <button class="btn btn-pause" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+            <button class="btn btn-pause paused" id="pauseBtn" onclick="togglePause()">▶ Start</button>
             <button class="btn btn-reset" onclick="resetTimer()">↻</button>
             <button class="btn btn-snooze" onclick="snoozeTimer()">+5</button>
         </div>
@@ -181,7 +178,7 @@
 
         // Timer state
         let remainingTime = parseInt(localStorage.getItem('powerHourTime')) || HOUR_IN_SECONDS;
-        let isPaused = localStorage.getItem('powerHourPaused') === 'true';
+        let isPaused = localStorage.getItem('powerHourPaused') !== 'false'; // Default to paused
         let countdownInterval = null;
 
         // DOM elements
@@ -203,10 +200,12 @@
             if (remainingTime <= 0) {
                 statusDisplay.textContent = '🎉 Done!';
                 statusDisplay.className = 'status finished';
+                pauseBtn.textContent = '▶ Start';
+                pauseBtn.classList.add('paused');
             } else if (isPaused) {
-                statusDisplay.textContent = '⏸ Paused';
+                statusDisplay.textContent = '⏸ Ready';
                 statusDisplay.className = 'status paused';
-                pauseBtn.textContent = '▶ Play';
+                pauseBtn.textContent = '▶ Start';
                 pauseBtn.classList.add('paused');
             } else {
                 statusDisplay.textContent = '▶ Running';
@@ -233,32 +232,35 @@
 
         // Toggle pause/resume
         function togglePause() {
+            if (remainingTime <= 0) {
+                // If timer is done, reset and start
+                remainingTime = HOUR_IN_SECONDS;
+            }
             isPaused = !isPaused;
             localStorage.setItem('powerHourPaused', isPaused);
             updateDisplay();
-            if (!isPaused && remainingTime > 0) {
+            if (!isPaused) {
                 startCountdown();
+            } else {
+                clearInterval(countdownInterval);
             }
         }
 
-        // Reset timer
+        // Reset timer - does NOT auto-start
         function resetTimer() {
+            clearInterval(countdownInterval);
             remainingTime = HOUR_IN_SECONDS;
-            isPaused = false;
+            isPaused = true;
             localStorage.setItem('powerHourTime', remainingTime);
-            localStorage.setItem('powerHourPaused', false);
+            localStorage.setItem('powerHourPaused', true);
             updateDisplay();
-            startCountdown();
         }
 
-        // Add snooze feature
+        // Add snooze time
         function snoozeTimer() {
             remainingTime += SNOOZE_TIME;
             localStorage.setItem('powerHourTime', remainingTime);
             updateDisplay();
-            if (!isPaused) {
-                startCountdown();
-            }
         }
 
         // Initialize
