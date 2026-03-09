@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus Timer</title>
+    <title>Pomodoro Timer</title>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -11,9 +11,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100 vh;
+            height: 100vh;
             margin: 0;
-            background: 00000000;  
+            background: transparent;  
             color: white;  
         }
 
@@ -117,17 +117,11 @@
         .btn-skip:hover { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 
         .icon { font-size: 1rem; margin-bottom: 4px; }
-
-        .session-count {
-            font-size: 0.55rem;
-            color: #666;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="widget-container">
-        <div class="icon">✨</div>
+        <div class="icon">⭐</div>
         <div class="header">POMODORO</div>
         <div class="timer-display" id="timer">25:00</div>
         <div class="status paused" id="status">⏸ Ready</div>
@@ -136,13 +130,12 @@
             <button class="btn btn-reset" onclick="resetTimer()">↻</button>
             <button class="btn btn-skip" onclick="skipSession()">⏭</button>
         </div>
-        <div class="session-count" id="sessionCount">Session 1 of 4</div>
     </div>
 
     <script>
-        const WORK_TIME = 25 * 60; // 25 minutes
-        const BREAK_TIME = 5 * 60; // 5 minutes
-        const LONG_BREAK_TIME = 15 * 60; // 15 minutes after 4 sessions
+        const WORK_TIME = 25 * 60;
+        const BREAK_TIME = 5 * 60;
+        const LONG_BREAK_TIME = 15 * 60;
 
         let remainingTime = parseInt(localStorage.getItem('pomodoroTime')) || WORK_TIME;
         let isPaused = localStorage.getItem('pomodoroPaused') !== 'false';
@@ -153,7 +146,6 @@
         const timerDisplay = document.getElementById('timer');
         const statusDisplay = document.getElementById('status');
         const pauseBtn = document.getElementById('pauseBtn');
-        const sessionCountDisplay = document.getElementById('sessionCount');
 
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
@@ -163,7 +155,6 @@
 
         function updateDisplay() {
             timerDisplay.textContent = formatTime(remainingTime);
-            sessionCountDisplay.textContent = `Session ${sessionCount} of 4`;
 
             if (isPaused) {
                 statusDisplay.textContent = '⏸ Ready';
@@ -171,7 +162,7 @@
                 pauseBtn.textContent = '▶ Start';
                 pauseBtn.classList.add('paused');
             } else if (isWorkSession) {
-                statusDisplay.textContent = '✨ Focus';
+                statusDisplay.textContent = '⭐ Focus';
                 statusDisplay.className = 'status work';
                 pauseBtn.textContent = '⏸ Pause';
                 pauseBtn.classList.remove('paused');
@@ -207,21 +198,11 @@
 
         function switchSession() {
             if (isWorkSession) {
-                // Work done, start break
                 isWorkSession = false;
-                if (sessionCount >= 4) {
-                    remainingTime = LONG_BREAK_TIME; // Long break after 4 sessions
-                } else {
-                    remainingTime = BREAK_TIME;
-                }
+                remainingTime = sessionCount >= 4 ? LONG_BREAK_TIME : BREAK_TIME;
             } else {
-                // Break done, start work
                 isWorkSession = true;
-                if (sessionCount >= 4) {
-                    sessionCount = 1; // Reset after long break
-                } else {
-                    sessionCount++;
-                }
+                sessionCount = sessionCount >= 4 ? 1 : sessionCount + 1;
                 remainingTime = WORK_TIME;
             }
             isPaused = true;
@@ -233,11 +214,8 @@
             isPaused = !isPaused;
             saveState();
             updateDisplay();
-            if (!isPaused) {
-                startCountdown();
-            } else {
-                clearInterval(countdownInterval);
-            }
+            if (!isPaused) startCountdown();
+            else clearInterval(countdownInterval);
         }
 
         function resetTimer() {
@@ -254,9 +232,7 @@
         }
 
         updateDisplay();
-        if (!isPaused && remainingTime > 0) {
-            startCountdown();
-        }
+        if (!isPaused && remainingTime > 0) startCountdown();
     </script>
 </body>
 </html>
