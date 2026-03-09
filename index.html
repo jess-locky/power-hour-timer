@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Hour Timer</title>
+    <title>Pomodoro Timer</title>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -13,7 +13,7 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);  
+            background: #000000;  
             color: white;  
         }
 
@@ -56,9 +56,9 @@
             background: rgba(255,255,255,0.05);
         }
 
-        .status.running { color: #c4b5fd; background: rgba(167, 139, 250, 0.15); }
-        .status.paused { color: #f9a8d4; background: rgba(244, 114, 182, 0.15); }
-        .status.finished { color: #e879f9; background: rgba(232, 121, 249, 0.15); }
+        .status.work { color: #f472b6; background: rgba(244, 114, 182, 0.15); }
+        .status.break { color: #c4b5fd; background: rgba(167, 139, 250, 0.15); }
+        .status.paused { color: #888; background: rgba(255,255,255,0.05); }
 
         .button-container {
             display: flex;
@@ -90,11 +90,11 @@
         .btn-pause.paused:hover { background: linear-gradient(135deg, #c4b5fd, #a78bfa); }
 
         .btn-reset {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: linear-gradient(135deg, #f472b6, #db2777);
-            font-size: 1rem;
+            font-size: 0.95rem;
             padding: 0;
             display: flex;
             align-items: center;
@@ -103,37 +103,57 @@
         }
         .btn-reset:hover { background: linear-gradient(135deg, #f9a8d4, #f472b6); }
 
-        .btn-snooze {
+        .btn-skip {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             background: linear-gradient(135deg, #7c3aed, #5b21b6);
-            padding: 8px 12px;
+            font-size: 0.85rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-snooze:hover { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+        .btn-skip:hover { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 
         .icon { font-size: 1rem; margin-bottom: 4px; }
+
+        .session-count {
+            font-size: 0.55rem;
+            color: #666;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="widget-container">
-        <div class="icon">⭐</div>
-        <div class="header">POWER HOUR</div>
-        <div class="timer-display" id="timer">60:00</div>
-        <div class="status" id="status">⏸ Ready</div>
+        <div class="icon">✨</div>
+        <div class="header">POMODORO</div>
+        <div class="timer-display" id="timer">25:00</div>
+        <div class="status paused" id="status">⏸ Ready</div>
         <div class="button-container">
             <button class="btn btn-pause paused" id="pauseBtn" onclick="togglePause()">▶ Start</button>
             <button class="btn btn-reset" onclick="resetTimer()">↻</button>
-            <button class="btn btn-snooze" onclick="snoozeTimer()">+5</button>
+            <button class="btn btn-skip" onclick="skipSession()">⏭</button>
         </div>
+        <div class="session-count" id="sessionCount">Session 1 of 4</div>
     </div>
 
     <script>
-        const HOUR_IN_SECONDS = 3600;
-        const SNOOZE_TIME = 300;
-        let remainingTime = parseInt(localStorage.getItem('powerHourTime')) || HOUR_IN_SECONDS;
-        let isPaused = localStorage.getItem('powerHourPaused') !== 'false';
+        const WORK_TIME = 25 * 60; // 25 minutes
+        const BREAK_TIME = 5 * 60; // 5 minutes
+        const LONG_BREAK_TIME = 15 * 60; // 15 minutes after 4 sessions
+
+        let remainingTime = parseInt(localStorage.getItem('pomodoroTime')) || WORK_TIME;
+        let isPaused = localStorage.getItem('pomodoroPaused') !== 'false';
+        let isWorkSession = localStorage.getItem('pomodoroWork') !== 'false';
+        let sessionCount = parseInt(localStorage.getItem('pomodoroSession')) || 1;
         let countdownInterval = null;
+
         const timerDisplay = document.getElementById('timer');
         const statusDisplay = document.getElementById('status');
         const pauseBtn = document.getElementById('pauseBtn');
+        const sessionCountDisplay = document.getElementById('sessionCount');
 
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
@@ -143,22 +163,31 @@
 
         function updateDisplay() {
             timerDisplay.textContent = formatTime(remainingTime);
-            if (remainingTime <= 0) {
-                statusDisplay.textContent = '🎉 Done!';
-                statusDisplay.className = 'status finished';
-                pauseBtn.textContent = '▶ Start';
-                pauseBtn.classList.add('paused');
-            } else if (isPaused) {
+            sessionCountDisplay.textContent = `Session ${sessionCount} of 4`;
+
+            if (isPaused) {
                 statusDisplay.textContent = '⏸ Ready';
                 statusDisplay.className = 'status paused';
                 pauseBtn.textContent = '▶ Start';
                 pauseBtn.classList.add('paused');
+            } else if (isWorkSession) {
+                statusDisplay.textContent = '✨ Focus';
+                statusDisplay.className = 'status work';
+                pauseBtn.textContent = '⏸ Pause';
+                pauseBtn.classList.remove('paused');
             } else {
-                statusDisplay.textContent = '▶ Running';
-                statusDisplay.className = 'status running';
+                statusDisplay.textContent = '☕ Break';
+                statusDisplay.className = 'status break';
                 pauseBtn.textContent = '⏸ Pause';
                 pauseBtn.classList.remove('paused');
             }
+        }
+
+        function saveState() {
+            localStorage.setItem('pomodoroTime', remainingTime);
+            localStorage.setItem('pomodoroPaused', isPaused);
+            localStorage.setItem('pomodoroWork', isWorkSession);
+            localStorage.setItem('pomodoroSession', sessionCount);
         }
 
         function startCountdown() {
@@ -166,39 +195,68 @@
             countdownInterval = setInterval(() => {
                 if (!isPaused && remainingTime > 0) {
                     remainingTime--;
-                    localStorage.setItem('powerHourTime', remainingTime);
+                    saveState();
                     updateDisplay();
                 }
-                if (remainingTime <= 0) clearInterval(countdownInterval);
+                if (remainingTime <= 0) {
+                    clearInterval(countdownInterval);
+                    switchSession();
+                }
             }, 1000);
         }
 
-        function togglePause() {
-            if (remainingTime <= 0) remainingTime = HOUR_IN_SECONDS;
-            isPaused = !isPaused;
-            localStorage.setItem('powerHourPaused', isPaused);
+        function switchSession() {
+            if (isWorkSession) {
+                // Work done, start break
+                isWorkSession = false;
+                if (sessionCount >= 4) {
+                    remainingTime = LONG_BREAK_TIME; // Long break after 4 sessions
+                } else {
+                    remainingTime = BREAK_TIME;
+                }
+            } else {
+                // Break done, start work
+                isWorkSession = true;
+                if (sessionCount >= 4) {
+                    sessionCount = 1; // Reset after long break
+                } else {
+                    sessionCount++;
+                }
+                remainingTime = WORK_TIME;
+            }
+            isPaused = true;
+            saveState();
             updateDisplay();
-            if (!isPaused) startCountdown();
-            else clearInterval(countdownInterval);
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            saveState();
+            updateDisplay();
+            if (!isPaused) {
+                startCountdown();
+            } else {
+                clearInterval(countdownInterval);
+            }
         }
 
         function resetTimer() {
             clearInterval(countdownInterval);
-            remainingTime = HOUR_IN_SECONDS;
+            remainingTime = isWorkSession ? WORK_TIME : BREAK_TIME;
             isPaused = true;
-            localStorage.setItem('powerHourTime', remainingTime);
-            localStorage.setItem('powerHourPaused', true);
+            saveState();
             updateDisplay();
         }
 
-        function snoozeTimer() {
-            remainingTime += SNOOZE_TIME;
-            localStorage.setItem('powerHourTime', remainingTime);
-            updateDisplay();
+        function skipSession() {
+            clearInterval(countdownInterval);
+            switchSession();
         }
 
         updateDisplay();
-        if (!isPaused && remainingTime > 0) startCountdown();
+        if (!isPaused && remainingTime > 0) {
+            startCountdown();
+        }
     </script>
 </body>
 </html>
